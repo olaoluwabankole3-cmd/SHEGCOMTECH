@@ -1,0 +1,162 @@
+import React, { useMemo, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import {
+  ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronDown, ChevronRight,
+  Clock3, FileUp, Headphones, Laptop, Menu, Monitor, PackageCheck, Printer,
+  Search, ShieldCheck, ShoppingBag, Smartphone, Sparkles, Truck, X, Zap,
+  Building2, Camera, Gamepad2, Plus, Minus, Trash2
+} from "lucide-react";
+import "./style.css";
+
+const products = [
+  { id: 1, name: "Everyday laptop", detail: "Work-ready performance", price: "₦485,000", category: "Laptops", tag: "POPULAR", image: "photo-1496181133206-80ce9b88a853", tone: "sand" },
+  { id: 2, name: "Studio monitor", detail: "Crisp detail. More room.", price: "₦265,000", category: "Monitors", tag: "WORKSPACE PICK", image: "photo-1527443224154-c4a3942d3acf", tone: "blue" },
+  { id: 3, name: "Smartphone", detail: "Power through your day", price: "₦320,000", category: "Phones", tag: "JUST IN", image: "photo-1511707171634-5f897ff02aa9", tone: "lavender" },
+  { id: 4, name: "Security camera kit", detail: "A smarter way to keep watch", price: "₦185,000", category: "CCTV & security", tag: "SECURITY", image: "photo-1557324232-b8917d3c3dcb", tone: "mint" },
+  { id: 5, name: "Gaming console", detail: "Your next level starts here", price: "₦690,000", category: "Gaming", tag: "PLAY MORE", image: "photo-1486572788966-cfd3df1f5b42", tone: "sand" },
+  { id: 6, name: "Wireless keyboard", detail: "A cleaner desk setup", price: "₦48,000", category: "Accessories", tag: "DESK ESSENTIAL", image: "photo-1587829741301-dc798b83add3", tone: "blue" },
+];
+const categories = [
+  { name: "All products", icon: ShoppingBag, count: "Explore all" },
+  { name: "Laptops", icon: Laptop, count: "Work & study" },
+  { name: "Monitors", icon: Monitor, count: "Build your setup" },
+  { name: "Phones", icon: Smartphone, count: "Stay connected" },
+  { name: "CCTV & security", icon: Camera, count: "Protect your space" },
+  { name: "Gaming", icon: Gamepad2, count: "Game on" },
+  { name: "Accessories", icon: Zap, count: "The little extras" },
+];
+const photo = (id, width = 800) => "https://images.unsplash.com/" + id + "?auto=format&fit=crop&w=" + width + "&q=85";
+
+function App() {
+  const [activeCategory, setActiveCategory] = useState("All products");
+  const [cart, setCart] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [cartOpen, setCartOpen] = useState(false);
+  const [serviceFiles, setServiceFiles] = useState([]);
+  const [serviceType, setServiceType] = useState("Printing");
+  const [serviceNote, setServiceNote] = useState("");
+  const [serviceSent, setServiceSent] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [quoteSent, setQuoteSent] = useState(false);
+  const [quoteForm, setQuoteForm] = useState({ name: "", company: "", email: "", phone: "", items: "", quantity: "" });
+  const fileInput = useRef(null);
+
+  const visibleProducts = useMemo(() => products.filter(p =>
+    (activeCategory === "All products" || p.category === activeCategory) &&
+    (p.name + " " + p.detail + " " + p.category).toLowerCase().includes(search.toLowerCase())
+  ), [activeCategory, search]);
+  const addToCart = (product) => setCart(current => [...current, product]);
+  const cartTotal = cart.reduce((sum, p) => sum + Number(p.price.replace(/[₦,]/g, "")), 0);
+  const formatMoney = (amount) => "₦" + amount.toLocaleString("en-NG");
+  const submitService = (event) => {
+    event.preventDefault();
+    if (!serviceFiles.length) return;
+    setServiceSent(true);
+  };
+  const submitQuote = (event) => {
+    event.preventDefault();
+    setQuoteSent(true);
+  };
+
+  return <div className="site-shell">
+    <div className="announcement"><span className="announce-dot" /> Your tech partner, from one device to a full office setup. <a href="#business">Explore business supply <ArrowUpRight size={13} /></a></div>
+    <header className="header">
+      <a className="brand" href="#top" aria-label="SHEGCOMTECH home"><span className="brand-mark"><span /><span /><span /></span><span className="brand-name">SHEGCOM<span>TECH</span><small>TECHNOLOGY, MADE PRACTICAL.</small></span></a>
+      <nav className={menuOpen ? "nav nav-open" : "nav"} aria-label="Main navigation">
+        <a className="nav-active" href="#shop" onClick={() => setMenuOpen(false)}>Shop</a>
+        <a href="#business" onClick={() => setMenuOpen(false)}>Business supply</a>
+        <a href="#services" onClick={() => setMenuOpen(false)}>Print & digital</a>
+        <a href="#about" onClick={() => setMenuOpen(false)}>About us</a>
+        <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
+      </nav>
+      <div className="header-actions">
+        <button className="icon-button search-toggle" aria-label="Search products" onClick={() => { setSearchOpen(!searchOpen); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={19} /></button>
+        <button className="cart-button" onClick={() => setCartOpen(true)}><ShoppingBag size={17} /><span className="cart-label">Bag</span><span className="cart-count">{cart.length}</span></button>
+        <button className="mobile-menu icon-button" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
+      </div>
+    </header>
+
+    {searchOpen && <div className="search-bar"><Search size={18} /><input autoFocus placeholder="Search laptops, phones, accessories…" value={search} onChange={e => setSearch(e.target.value)} /><button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label="Close search"><X size={18} /></button></div>}
+
+    <main id="top">
+      <section className="hero">
+        <div className="hero-copy">
+          <div className="eyebrow"><span className="eyebrow-line" /> TECHNOLOGY THAT WORKS FOR YOU</div>
+          <h1>Good tech.<br /><span>Better possibilities.</span></h1>
+          <p className="hero-description">From your next everyday device to the tech that runs your business — get the right tools, without the runaround.</p>
+          <div className="hero-actions"><a className="button button-primary" href="#shop">Explore the store <ArrowRight size={17} /></a><a className="text-link" href="#business">Buying for a business? <ArrowUpRight size={15} /></a></div>
+          <div className="hero-proof"><div className="proof-icons"><span><ShieldCheck size={17} /></span><span><PackageCheck size={17} /></span><span><Headphones size={17} /></span></div><div><strong>Good choices start here.</strong><small>Helpful advice · Sourcing · After-sales support</small></div></div>
+        </div>
+        <div className="hero-visual">
+          <div className="hero-grid" />
+          <div className="visual-topline"><span><span className="live-dot" /> THE RIGHT SETUP</span><span>01 / EVERYDAY TECH</span></div>
+          <div className="hero-product-image"><img src={photo("photo-1496181133206-80ce9b88a853", 1100)} alt="Modern laptop on a clean workspace" /></div>
+          <div className="floating-chip chip-top"><span className="chip-icon"><Zap size={17} /></span><span><b>Built around you</b><small>Personal & business</small></span></div>
+          <div className="floating-chip chip-bottom"><span className="chip-check"><Check size={17} /></span><span><b>Need it in bulk?</b><small>Let's source it.</small></span><ArrowUpRight size={17} /></div>
+          <div className="visual-caption"><span>THE TOOLS FOR WHAT'S NEXT.</span><ArrowDownRight size={20} /></div>
+          <div className="hero-index">SC<span>.</span>01</div>
+        </div>
+      </section>
+
+      <section className="service-strip" aria-label="What we do">
+        <div className="strip-intro"><span className="strip-kicker">ONE PARTNER. MORE POSSIBILITIES.</span><strong>Tech for every side of life.</strong></div>
+        <a href="#shop" className="strip-item"><span className="strip-icon"><ShoppingBag size={20} /></span><span><b>Shop devices</b><small>Everyday essentials</small></span><ArrowUpRight size={16} /></a>
+        <a href="#business" className="strip-item"><span className="strip-icon"><Building2 size={20} /></span><span><b>Business supply</b><small>Bulk & procurement</small></span><ArrowUpRight size={16} /></a>
+        <a href="#services" className="strip-item"><span className="strip-icon"><Printer size={20} /></span><span><b>Print & digital</b><small>From anywhere</small></span><ArrowUpRight size={16} /></a>
+      </section>
+
+      <section className="shop-section section-wrap" id="shop">
+        <div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH STORE</div><h2>Find your next <span>favourite.</span></h2><p>Thoughtful tech for work, play and everything in between.</p></div><a className="view-all" href="#shop" onClick={() => { setActiveCategory("All products"); setSearch(""); }}>View all products <ArrowRight size={16} /></a></div>
+        <div className="shop-layout">
+          <aside className="category-sidebar"><span className="category-label">SHOP BY CATEGORY</span>{categories.map(cat => { const Icon = cat.icon; return <button key={cat.name} className={activeCategory === cat.name ? "category-link category-selected" : "category-link"} onClick={() => setActiveCategory(cat.name)}><Icon size={17} /><span>{cat.name}<small>{cat.count}</small></span><ChevronRight size={15} className="category-arrow" /></button>; })}<div className="sidebar-note"><Sparkles size={17} /><p>Not sure what fits? <a href="#contact">Talk to us.</a></p></div></aside>
+          <div className="product-area">
+            <div className="product-toolbar"><span>{search ? "Search results" : activeCategory === "All products" ? "A few good places to start" : activeCategory}<b>{visibleProducts.length.toString().padStart(2, "0")}</b></span><span className="sort-label">CURATED FOR YOU <ChevronDown size={14} /></span></div>
+            <div className="product-grid">{visibleProducts.length ? visibleProducts.map((product, i) => <article className="product-card" key={product.id}>
+              <div className={"product-image product-" + product.tone}><span className="product-tag">{product.tag}</span><img src={photo(product.image, 700)} alt={product.name} loading="lazy" /><button className="quick-add" aria-label={"Add " + product.name + " to bag"} onClick={() => addToCart(product)}><Plus size={19} /></button><span className="product-number">0{i + 1}</span></div>
+              <div className="product-info"><span className="product-category">{product.category}</span><h3>{product.name}</h3><div className="product-bottom"><div><p>{product.detail}</p><strong>{product.price}</strong></div><button className="add-button" onClick={() => addToCart(product)} aria-label={"Add " + product.name + " to bag"}><Plus size={17} /></button></div></div>
+            </article>) : <div className="empty-results"><Search size={24} /><h3>No matches just yet.</h3><p>Try another search or browse all products.</p><button className="button button-primary" onClick={() => { setSearch(""); setActiveCategory("All products"); }}>See all products</button></div>}</div>
+            <div className="catalog-note"><span><ShieldCheck size={17} /></span><p><strong>Looking for a specific model?</strong> Our catalogue is only a starting point. Ask us to source the exact device you need.</p><button onClick={() => setQuoteOpen(true)}>Request a quote <ArrowRight size={15} /></button></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="business-section" id="business">
+        <div className="business-inner">
+          <div className="business-copy"><div className="eyebrow eyebrow-light"><span className="eyebrow-line" /> FOR TEAMS THAT MEAN BUSINESS</div><h2>Equipping your business<br />shouldn't be <span>hard work.</span></h2><p>Opening a new office, upgrading your team's setup or sourcing equipment at scale? We'll help you get the right technology, in the right quantities, with one dependable point of contact.</p><ul className="business-points"><li><Check size={16} /> Laptops, monitors, phones & office equipment</li><li><Check size={16} /> CCTV, networking & security solutions</li><li><Check size={16} /> Bulk sourcing and tailored quotations</li><li><Check size={16} /> One-off purchases or ongoing supply</li></ul><button className="button button-white" onClick={() => { setQuoteOpen(true); setQuoteSent(false); }}>Talk to our supply team <ArrowRight size={17} /></button><span className="business-footnote">TELL US WHAT YOU NEED. WE'LL TAKE IT FROM THERE.</span></div>
+          <div className="business-visual"><div className="business-photo"><img src={photo("photo-1497366754035-f200968a6e72", 1000)} alt="Modern office workspace ready for a technology setup" loading="lazy" /></div><div className="supply-card"><span className="supply-card-icon"><PackageCheck size={20} /></span><span><small>BUSINESS PROCUREMENT</small><strong>One request. A complete setup.</strong><p>Tell us your list, quantity and timeline.</p></span><ArrowUpRight size={18} /></div><div className="business-stamp"><span>SC</span><small>BUSINESS<br />SOLUTIONS</small></div></div>
+        </div>
+      </section>
+
+      <section className="services-section section-wrap" id="services">
+        <div className="section-heading services-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> YOUR LOCAL DIGITAL WORKSPACE</div><h2>Some things are easier <span>with us.</span></h2><p>Need a printout, a document prepared or a digital task handled? Start online, then let us take care of the details.</p></div><div className="services-aside">NO NEED TO START<br />FROM SCRATCH <ArrowDownRight size={20} /></div></div>
+        <div className="services-layout">
+          <div className="service-copy-card"><div className="service-number">01 / PRINT & DOCUMENTS</div><div className="service-illustration"><div className="paper-sheet"><span /><span /><span /><span /><b>PDF</b></div><div className="printer-illustration"><Printer size={55} strokeWidth={1.3} /></div><span className="illus-orbit orbit-one" /><span className="illus-orbit orbit-two" /></div><h3>Send it in.<br />Pick it up ready.</h3><p>Upload your documents from home or work. Tell us what you need and we'll confirm the details before processing.</p><div className="service-mini-points"><span><Check size={14} /> Document printing</span><span><Check size={14} /> Scanning & copies</span><span><Check size={14} /> Typing & formatting</span></div></div>
+          <form className="upload-card" onSubmit={submitService}>
+            <div className="upload-card-head"><span className="upload-icon"><FileUp size={20} /></span><div><h3>Start a print request</h3><p>Share your files and requirements.</p></div><span className="secure-label"><ShieldCheck size={13} /> PRIVATE REQUEST</span></div>
+            {serviceSent ? <div className="request-success"><span><Check size={24} /></span><h3>Your request is prepared.</h3><p>Your selected files are attached to this form in your browser, but they have <strong>not been uploaded or sent</strong> yet. Connect a secure file-storage and request-processing service to receive real submissions.</p><button type="button" className="button button-primary" onClick={() => { setServiceSent(false); setServiceFiles([]); setServiceNote(""); if (fileInput.current) fileInput.current.value = ""; }}>Start another request</button></div> : <>
+              <label className="field-label" htmlFor="service-type">WHAT DO YOU NEED?</label><div className="select-wrap"><select id="service-type" value={serviceType} onChange={e => setServiceType(e.target.value)}><option>Printing</option><option>Scanning & photocopying</option><option>Typing & document formatting</option><option>Online application assistance</option><option>Other digital service</option></select><ChevronDown size={16} /></div>
+              <input ref={fileInput} type="file" multiple className="visually-hidden" id="service-files" onChange={e => setServiceFiles(Array.from(e.target.files || []))} />
+              <label className="drop-zone" htmlFor="service-files"><span className="drop-icon"><FileUp size={22} /></span><strong>Choose files from your device</strong><span>PDF, DOCX, JPG, PNG and more</span><span className="drop-browse">Browse files <ArrowUpRight size={13} /></span></label>
+              {serviceFiles.length > 0 && <div className="selected-files">{serviceFiles.map((file, i) => <div key={file.name + i}><span className="file-mini"><FileUp size={14} /></span><span className="file-name">{file.name}<small>{(file.size / 1024 / 1024).toFixed(2)} MB</small></span><button type="button" aria-label={"Remove " + file.name} onClick={() => { setServiceFiles(old => old.filter((_, index) => index !== i)); if (fileInput.current) fileInput.current.value = ""; }}><X size={15} /></button></div>)}</div>}
+              <label className="field-label" htmlFor="service-notes">NOTES FOR OUR TEAM <span>OPTIONAL</span></label><textarea id="service-notes" value={serviceNote} onChange={e => setServiceNote(e.target.value)} placeholder="e.g. A4, black & white, 3 copies…" rows="2" />
+              <button className="button button-primary upload-submit" type="submit" disabled={!serviceFiles.length}>Review print request <ArrowRight size={17} /></button>
+              <p className="upload-privacy"><ShieldCheck size={13} /> Your documents should be handled securely. Upload delivery will be enabled when the secure backend is connected.</p>
+            </>}
+          </form>
+        </div>
+      </section>
+
+      <section className="promise-strip" id="about"><div className="promise-intro"><span className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH DIFFERENCE</span><h2>Less tech stress.<br /><span>More getting things done.</span></h2></div><div className="promise-item"><span><Headphones size={20} /></span><b>Real human help</b><p>Get guidance before you buy, not just a product link.</p></div><div className="promise-item"><span><Search size={20} /></span><b>We can source it</b><p>Have a specific model or a long equipment list? Tell us.</p></div><div className="promise-item"><span><Truck size={20} /></span><b>Made for your needs</b><p>From a single accessory to a complete team setup.</p></div></section>
+    </main>
+
+    <footer id="contact"><div className="footer-main"><div className="footer-brand-col"><a className="brand brand-footer" href="#top"><span className="brand-mark"><span /><span /><span /></span><span className="brand-name">SHEGCOM<span>TECH</span><small>TECHNOLOGY, MADE PRACTICAL.</small></span></a><p>Dependable technology, useful digital services and business supply — all in one place.</p><a href="mailto:hello@shegcomtech.com" className="footer-contact">Let's talk <ArrowUpRight size={15} /></a></div><div className="footer-links"><span>EXPLORE</span><a href="#shop">Shop technology</a><a href="#business">Business supply</a><a href="#services">Print & digital services</a><a href="#about">Why SHEGCOMTECH</a></div><div className="footer-links"><span>HERE TO HELP</span><a href="#contact">Contact the team</a><button onClick={() => setQuoteOpen(true)}>Request a quotation</button><a href="#services">Start a print request</a><small>Business hours and response times to be confirmed.</small></div><div className="footer-cta"><span className="footer-cta-mark"><ArrowUpRight size={24} /></span><h3>Have a list?<br />Let's make it happen.</h3><p>Tell us what you need. We'll help you figure out the next step.</p><button onClick={() => setQuoteOpen(true)}>Start a conversation <ArrowRight size={16} /></button></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} SHEGCOMTECH. All rights reserved.</span><span>BUILT AROUND WHAT YOU NEED. <span className="footer-blue">SC.</span></span></div></footer>
+
+    {cartOpen && <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) setCartOpen(false); }}><div className="drawer" role="dialog" aria-modal="true" aria-label="Shopping bag"><div className="drawer-head"><div><span className="eyebrow">YOUR SELECTION</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="icon-button" onClick={() => setCartOpen(false)} aria-label="Close bag"><X size={21} /></button></div>{cart.length ? <><div className="drawer-items">{cart.map((p, i) => <div className="drawer-item" key={p.id + "-" + i}><img src={photo(p.image, 180)} alt="" /><div><small>{p.category}</small><strong>{p.name}</strong><b>{p.price}</b></div><button aria-label={"Remove " + p.name} onClick={() => setCart(old => old.filter((_, index) => index !== i))}><Trash2 size={16} /></button></div>)}</div><div className="drawer-total"><span>Estimated total</span><strong>{formatMoney(cartTotal)}</strong></div><p className="drawer-disclaimer">Displayed prices are illustrative placeholders and should be confirmed before orders are accepted.</p><button className="button button-primary drawer-checkout" onClick={() => { setCartOpen(false); setQuoteOpen(true); setQuoteForm(f => ({ ...f, items: cart.map(p => p.name).join(", "), quantity: String(cart.length) })); }}>Request availability & price <ArrowRight size={16} /></button><button className="clear-bag" onClick={() => setCart([])}>Clear bag</button></> : <div className="empty-bag"><ShoppingBag size={30} /><h3>Your bag is taking a breather.</h3><p>Add a few things you like and they'll show up here.</p><button className="button button-primary" onClick={() => { setCartOpen(false); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}>Browse the store <ArrowRight size={16} /></button></div>}</div></div>}
+
+    {quoteOpen && <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) setQuoteOpen(false); }}><div className="quote-modal" role="dialog" aria-modal="true" aria-label="Request a quotation"><div className="drawer-head"><div><span className="eyebrow">LET'S GET YOU SORTED</span><h2>Request a <span>quote.</span></h2></div><button className="icon-button" onClick={() => setQuoteOpen(false)} aria-label="Close quotation form"><X size={21} /></button></div>{quoteSent ? <div className="request-success"><span><Check size={24} /></span><h3>Thanks for the details.</h3><p>This demo has captured your entries in the current page only. To deliver quotations to SHEGCOMTECH, connect a backend or business email workflow before launch.</p><button className="button button-primary" onClick={() => { setQuoteOpen(false); setQuoteSent(false); }}>Close</button></div> : <form className="quote-form" onSubmit={submitQuote}><p>Tell us what you're looking for. This works for individual purchases and business orders.</p><div className="quote-fields"><label>YOUR NAME<input required value={quoteForm.name} onChange={e => setQuoteForm({ ...quoteForm, name: e.target.value })} placeholder="Full name" /></label><label>COMPANY <span>OPTIONAL</span><input value={quoteForm.company} onChange={e => setQuoteForm({ ...quoteForm, company: e.target.value })} placeholder="Company or organisation" /></label><label>EMAIL ADDRESS<input required type="email" value={quoteForm.email} onChange={e => setQuoteForm({ ...quoteForm, email: e.target.value })} placeholder="you@example.com" /></label><label>PHONE NUMBER<input value={quoteForm.phone} onChange={e => setQuoteForm({ ...quoteForm, phone: e.target.value })} placeholder="Best number to reach you" /></label><label className="field-wide">WHAT DO YOU NEED?<textarea required rows="3" value={quoteForm.items} onChange={e => setQuoteForm({ ...quoteForm, items: e.target.value })} placeholder="e.g. 12 laptops, 12 monitors, 2 CCTV kits…" /></label><label className="field-wide">ESTIMATED QUANTITY <span>OPTIONAL</span><input value={quoteForm.quantity} onChange={e => setQuoteForm({ ...quoteForm, quantity: e.target.value })} placeholder="e.g. 12 units or a full office setup" /></label></div><button className="button button-primary quote-submit" type="submit">Prepare my request <ArrowRight size={16} /></button><p className="quote-note">Demo form only — connect an email or database service to receive real enquiries.</p></form>}</div></div>}
+  </div>;
+}
+
+createRoot(document.getElementById("root")).render(<App />);
