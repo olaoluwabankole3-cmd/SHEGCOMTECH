@@ -225,13 +225,13 @@ function AdminApp() {
         const extension = (imageFile.name.split(".").pop() || "jpg").toLowerCase();
         const safeExtension = ["jpg", "jpeg", "png", "webp", "avif"].includes(extension) ? extension : "jpg";
         const path = slugify(form.name || "product") + "-" + crypto.randomUUID() + "." + safeExtension;
-        const { error: uploadError } = await supabase.storage.from("product-images").upload(path, imageFile, {
+        const { data: uploadData, error: uploadError } = await supabase.storage.from("product-images").upload(path, imageFile, {
           cacheControl: "3600", contentType: imageFile.type, upsert: false
         });
         if (uploadError) throw uploadError;
-        uploadedPath = path;
-        imagePath = path;
-        imageUrl = supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+        uploadedPath = uploadData.path;
+        imagePath = uploadedPath;
+        imageUrl = supabase.storage.from("product-images").getPublicUrl(uploadedPath).data.publicUrl;
       }
 
       const payload = {
