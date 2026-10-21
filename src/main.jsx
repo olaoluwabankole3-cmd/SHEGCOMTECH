@@ -149,7 +149,12 @@ function App() {
         <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
       </nav>
       <div className="header-actions">
-        <button className="icon-button search-toggle" aria-label="Search products" onClick={() => { setSearchOpen(!searchOpen); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={19} /></button>
+        <form className="header-search" role="search" onSubmit={event => { event.preventDefault(); setSearchOpen(false); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}>
+          <Search size={17} />
+          <input aria-label="Search products" placeholder="Search technology…" value={search} onChange={event => setSearch(event.target.value)} />
+          <button type="submit" aria-label="Show search results"><ArrowRight size={16} /></button>
+        </form>
+        <button className="icon-button search-toggle mobile-search-toggle" aria-label="Search products" onClick={() => { setSearchOpen(!searchOpen); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={19} /></button>
         <button className="cart-button" onClick={() => setCartOpen(true)}><ShoppingBag size={17} /><span className="cart-label">Bag</span><span className="cart-count">{cart.length}</span></button>
         <button className="mobile-menu icon-button" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
