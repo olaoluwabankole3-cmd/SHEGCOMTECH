@@ -24,7 +24,7 @@ const emptyProduct = () => ({
 });
 
 function BrandMark() {
-  return <span className="admin-brand-mark"><i /><i /><i /></span>;
+  return <img className="admin-brand-image" src="/brand-assets/logo.jpeg" alt="" aria-hidden="true" />;
 }
 
 function SetupScreen() {

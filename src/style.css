@@ -454,3 +454,8 @@ section[id] { scroll-margin-top:88px; }
 @media(prefers-reduced-motion:reduce) {
   .overlay, .drawer, .quote-modal, .nav-open, .search-bar { animation:none!important; }
 }
+
+
+/* Original SHEGCOMTECH logo */
+.brand-mark-image{display:block;width:48px;height:48px;flex:none;object-fit:contain;background:#fff;border-radius:50%}
+@media(max-width:560px){.brand-mark-image{width:38px;height:38px}}
