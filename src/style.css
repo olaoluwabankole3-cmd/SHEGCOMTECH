@@ -432,3 +432,25 @@ section[id] { scroll-margin-top:88px; }
   .paper-sheet, .printer-illustration { transform:none!important; transition:none!important; }
   .drop-zone:hover, .icon-button:hover, .cart-button:hover, .footer-cta button:hover { transform:none!important; }
 }
+
+
+/* Small interaction animations for menus and drawers; no motion for reduced-motion users. */
+.search-bar { top:86px; }
+.overlay { animation:veilIn .22s ease both; }
+.drawer { animation:drawerIn .34s cubic-bezier(.2,.75,.2,1) both; }
+.quote-modal { animation:modalIn .32s cubic-bezier(.2,.75,.2,1) both; }
+.nav-open { transform-origin:top center; animation:menuDrop .24s ease both; }
+@keyframes veilIn { from {opacity:0} to {opacity:1} }
+@keyframes drawerIn { from {opacity:.65; transform:translateX(24px)} to {opacity:1; transform:translateX(0)} }
+@keyframes modalIn { from {opacity:0; transform:translateY(10px) scale(.985)} to {opacity:1; transform:translateY(0) scale(1)} }
+@keyframes menuDrop { from {opacity:0; transform:translateY(-7px)} to {opacity:1; transform:translateY(0)} }
+@media(max-width:820px) {
+  .search-bar { top:74px; }
+}
+@media(max-width:560px) {
+  .search-bar { top:68px; }
+  .drawer, .quote-modal { animation-duration:.25s; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .overlay, .drawer, .quote-modal, .nav-open, .search-bar { animation:none!important; }
+}
