@@ -63,10 +63,11 @@ function App() {
     return () => { active = false; };
   }, []);
 
-  const visibleProducts = useMemo(() => products.filter(p =>
-    (activeCategory === "All products" || p.category === activeCategory) &&
-    (p.name + " " + p.detail + " " + p.category).toLowerCase().includes(search.toLowerCase())
-  ), [activeCategory, search]);
+  const visibleProducts = useMemo(() => products.filter(product =>
+    (activeCategory === "All products" || product.category === activeCategory) &&
+    [product.name, product.description, product.detail, product.brand, product.category]
+      .filter(Boolean).join(" ").toLowerCase().includes(search.toLowerCase())
+  ), [products, activeCategory, search]);
   const addToCart = (product) => setCart(current => [...current, product]);
   const cartTotal = cart.reduce((sum, product) => sum + product.priceNgn, 0);
   const formatMoney = (amount) => "₦" + amount.toLocaleString("en-NG");
@@ -146,7 +147,7 @@ function App() {
               }} aria-label={typeof product.priceNgn === "number" ? "Add " + product.name + " to bag" : "Request price for " + product.name}>{typeof product.priceNgn === "number" ? <Plus size={17} /> : <ArrowUpRight size={17} />}</button></div></div>
             </article>) : <div className="empty-results catalog-empty">
               <span className="catalog-empty-index">{catalogStatus === "loading" ? "01" : "SC"}</span>
-              <h3>{catalogStatus === "loading" ? "Preparing the catalogue" : catalogStatus === "error" ? "Catalogue unavailable" : search ? "No matches found" : catalogStatus === "empty" ? "We're getting the store ready." : "No products in this category yet."}</h3>
+              <h3>{catalogStatus === "loading" ? "Preparing the catalogue" : catalogStatus === "error" ? "Catalogue unavailable" : search ? "No matches found" : catalogStatus === "empty" && activeCategory === "All products" ? "We're getting the store ready." : "No products in this category yet."}</h3>
               <p>{catalogStatus === "loading" ? "Checking the current product list." : catalogStatus === "error" ? "The product list could not be loaded. Please contact us to check availability." : search ? "Try a different product name, or ask us to source it." : "We only list products that have been added to the catalogue. Tell us what you need and we'll check availability."}</p>
               <div className="catalog-empty-actions"><button className="button button-primary" onClick={() => { setQuoteForm(form => ({ ...form, items: search || activeCategory === "All products" ? "" : activeCategory })); setQuoteSent(false); setQuoteOpen(true); }}>Ask us to source an item <ArrowRight size={16} /></button>{search && <button className="text-link" onClick={() => setSearch("")}>Clear search</button>}</div>
             </div>}</div>
