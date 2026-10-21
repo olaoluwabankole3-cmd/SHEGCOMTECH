@@ -344,7 +344,7 @@ function AdminApp() {
               <div><span className={product.is_active ? "product-status status-published" : "product-status status-draft"}><span />{product.is_active ? "Published" : "Draft"}</span>{product.is_featured && <small className="featured-label"><Star size={11} fill="currentColor" /> Featured</small>}</div>
               <div className="inventory-actions"><button title={product.is_active ? "Unpublish" : "Publish"} aria-label={product.is_active ? "Unpublish " + product.name : "Publish " + product.name} disabled={busyId === product.id} onClick={() => quickUpdate(product, { is_active: !product.is_active })}>{product.is_active ? <EyeOff size={16} /> : <Eye size={16} />}</button><button title={product.is_featured ? "Remove featured" : "Feature product"} aria-label={product.is_featured ? "Remove featured " + product.name : "Feature " + product.name} disabled={busyId === product.id} onClick={() => quickUpdate(product, { is_featured: !product.is_featured })}><Star size={16} fill={product.is_featured ? "currentColor" : "none"} /></button><button title="Edit product" aria-label={"Edit " + product.name} disabled={busyId === product.id} onClick={() => openEdit(product)}><Pencil size={16} /></button><button className="delete-action" title="Delete product" aria-label={"Delete " + product.name} disabled={busyId === product.id} onClick={() => deleteProduct(product)}><Trash2 size={16} /></button></div>
             </article>)}</div>
-          }</div>}
+          </div>}
         </section>
       </section>
     </main>
