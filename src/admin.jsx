@@ -35,8 +35,8 @@ function SetupScreen() {
       <span className="admin-overline">ADMIN CONNECTION REQUIRED</span>
       <h1>Connect the catalogue.</h1>
       <p>The admin interface connects to Cloudflare Pages Functions, with product records stored in D1 and product images stored in R2.</p>
-      <div className="setup-step"><span>01</span><div><strong>Run the database setup</strong><small>Confirm the <code>SHEGCOMTECH_DB</code> D1 binding points to <code>shegcomtech-db</code>.</small></div></div>
-      <div className="setup-step"><span>02</span><div><strong>Add Cloudflare variables</strong><small>Set the server-side <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD</code> secrets in Cloudflare Pages, then redeploy.</small></div></div>
+      <div className="setup-step"><span>01</span><div><strong>Verify the D1 connection</strong><small>Confirm the <code>SHEGCOMTECH_DB</code> D1 binding points to <code>shegcomtech-db</code>.</small></div></div>
+      <div className="setup-step"><span>02</span><div><strong>Verify admin secrets</strong><small>Set the server-side <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD</code> secrets in Cloudflare Pages, then redeploy.</small></div></div>
       <a className="admin-primary-link" href="https://dash.cloudflare.com/" target="_blank" rel="noreferrer">Open Cloudflare <ExternalLink size={15} /></a>
     </div>
     <p className="gate-foot">SHEGCOMTECH · PRIVATE STORE MANAGEMENT</p>
@@ -302,7 +302,7 @@ function AdminApp() {
   if (sessionLoading || (session && accessState === "checking")) return <main className="admin-loading"><BrandMark /><LoaderCircle className="spin" size={22} /><span>Checking admin access…</span></main>;
   if (!session) return <SignInScreen onSignIn={signIn} busy={signInBusy} error={signInError} />;
   if (accessState === "denied") return <main className="admin-gate"><div className="gate-brand"><BrandMark /><span>SHEGCOM<span>TECH</span></span></div><div className="gate-card"><span className="gate-icon"><ShieldCheck size={24} /></span><span className="admin-overline">ACCESS RESTRICTED</span><h1>Admin access required.</h1><p>Sign in using the administrator credentials configured in Cloudflare Pages.</p><button className="admin-button secondary-button full-button" onClick={signOut}><LogOut size={16} /> Sign out</button></div></main>;
-  if (accessState === "error") return <main className="admin-gate"><div className="gate-brand"><BrandMark /><span>SHEGCOM<span>TECH</span></span></div><div className="gate-card"><span className="gate-icon"><AlertCircle size={24} /></span><span className="admin-overline">BACKEND CHECK FAILED</span><h1>Could not load inventory.</h1><p>{accessError}</p><p>Confirm that the SQL setup has been run and the admin account is allowlisted.</p><button className="admin-button primary-button full-button" onClick={() => setReloadCounter(value => value + 1)}><ArrowRight size={16} /> Try again</button><button className="admin-button secondary-button full-button" onClick={signOut}><LogOut size={16} /> Sign out</button></div></main>;
+  if (accessState === "error") return <main className="admin-gate"><div className="gate-brand"><BrandMark /><span>SHEGCOM<span>TECH</span></span></div><div className="gate-card"><span className="gate-icon"><AlertCircle size={24} /></span><span className="admin-overline">BACKEND CHECK FAILED</span><h1>Could not load inventory.</h1><p>{accessError}</p><p>Confirm the D1 schema is present and the Cloudflare API bindings and secrets are configured.</p><button className="admin-button primary-button full-button" onClick={() => setReloadCounter(value => value + 1)}><ArrowRight size={16} /> Try again</button><button className="admin-button secondary-button full-button" onClick={signOut}><LogOut size={16} /> Sign out</button></div></main>;
 
   const activeCount = products.filter(product => product.is_active).length;
   const draftCount = products.length - activeCount;
