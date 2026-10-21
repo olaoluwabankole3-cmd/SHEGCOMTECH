@@ -366,7 +366,7 @@ function App() {
       <section className="business-section" id="business">
         <div className="business-inner">
           <div className="business-copy"><div className="eyebrow eyebrow-light"><span className="eyebrow-line" /> FOR TEAMS THAT MEAN BUSINESS</div><h2>Equipping your business<br />shouldn't be <span>hard work.</span></h2><p>Laptops, displays, CCTV and office essentials — sourced for teams, projects and growing businesses.</p><ul className="business-points"><li><Check size={16} /> Office & personal devices</li><li><Check size={16} /> CCTV, networking & security</li><li><Check size={16} /> Bulk orders & ongoing supply</li></ul><button className="button button-white" onClick={() => { setQuoteOpen(true); setQuoteSent(false); }}>Talk to our supply team <ArrowRight size={17} /></button></div>
-          <div className="business-visual"><div className="business-photo"><img src={photo("photo-1497366754035-f200968a6e72", 1000)} alt="Modern office workspace ready for a technology setup" loading="lazy" /></div><div className="supply-card"><span className="supply-card-icon"><PackageCheck size={20} /></span><span><small>BUSINESS PROCUREMENT</small><strong>One request. A complete setup.</strong><p>Tell us your list, quantity and timeline.</p></span><ArrowUpRight size={18} /></div><div className="business-stamp"><span>SC</span><small>BUSINESS<br />SOLUTIONS</small></div></div>
+          <div className="business-visual"><div className="business-photo"><img src={photo("photo-1497366754035-f200968a6e72", 1000)} alt="Modern office workspace ready for a technology setup" loading="lazy" /></div><div className="business-stamp"><span>SC</span><small>BUSINESS<br />SOLUTIONS</small></div></div>
         </div>
       </section>
 
