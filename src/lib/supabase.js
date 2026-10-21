@@ -40,7 +40,7 @@ class Query {
       } else {
         const adminList = !this.filters.some(([column, value]) => column === "is_active" && value === true);
         data = await api("/api/products" + (adminList ? "?all=1" : ""));
-        for (const [column, value] of this.filters) data = data.filter(row => String(row[column]) === String(value));
+        for (const [column, value] of this.filters) data = data.filter(row => (typeof value === "boolean" ? Boolean(row[column]) === value : String(row[column]) === String(value)));
         for (const [column, ascending] of [...this.orders].reverse()) data.sort((a,b) => { const left = a[column] ?? "", right = b[column] ?? ""; return (left < right ? -1 : left > right ? 1 : 0) * (ascending ? 1 : -1); });
       }
       return { data: this.single && Array.isArray(data) ? (data[0] || null) : (data ?? null), error: null };
