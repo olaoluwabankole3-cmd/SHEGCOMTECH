@@ -22,9 +22,59 @@ const categories = [
 ];
 const photo = (id, width = 800) => "https://images.unsplash.com/" + id + "?auto=format&fit=crop&w=" + width + "&q=85";
 
+const heroSlides = [
+  {
+    kicker: "THE TECH EDIT",
+    titleLead: "Your next upgrade",
+    titleAccent: "starts here.",
+    description: "Laptops, phones, gaming and everyday essentials.",
+    primary: "Browse technology",
+    primaryHref: "#shop",
+    secondary: "Find a specific model",
+    secondaryHref: "#shop",
+    image: "photo-1496181133206-80ce9b88a853",
+    alt: "Laptop on a modern desk",
+    imageCaption: "TECH FOR WORK, PLAY & EVERYTHING BETWEEN",
+    tabTitle: "Shop technology",
+    tabSubtitle: "Everyday devices"
+  },
+  {
+    kicker: "FOR WORK THAT MOVES",
+    titleLead: "Big plans.",
+    titleAccent: "Better equipped.",
+    description: "Office devices, displays and security equipment for your team.",
+    primary: "Request a business quote",
+    primaryHref: "#business",
+    secondary: "Explore the store",
+    secondaryHref: "#shop",
+    image: "photo-1497366754035-f200968a6e72",
+    alt: "Bright contemporary office workspace",
+    imageCaption: "TECHNOLOGY FOR TEAMS & PROJECTS",
+    tabTitle: "Business supply",
+    tabSubtitle: "Single orders & bulk"
+  },
+  {
+    kicker: "PRINT & DIGITAL",
+    titleLead: "Send it from",
+    titleAccent: "where you are.",
+    description: "Prepare document and print requests before you visit.",
+    primary: "Start a print request",
+    primaryHref: "#services",
+    secondary: "Shop devices",
+    secondaryHref: "#shop",
+    image: "photo-1587829741301-dc798b83add3",
+    alt: "Modern keyboard and workspace accessories",
+    imageCaption: "YOUR LOCAL DIGITAL WORKSPACE",
+    tabTitle: "Print & digital",
+    tabSubtitle: "Start online"
+  }
+];
+
 function App() {
   const [products, setProducts] = useState([]);
   const [catalogStatus, setCatalogStatus] = useState("loading");
+  const [activeHero, setActiveHero] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All products");
   const [cart, setCart] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,6 +113,12 @@ function App() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    if (heroPaused || (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) return undefined;
+    const timer = window.setInterval(() => setActiveHero(index => (index + 1) % heroSlides.length), 6500);
+    return () => window.clearInterval(timer);
+  }, [heroPaused]);
+
   const visibleProducts = useMemo(() => products.filter(product =>
     (activeCategory === "All products" || product.category === activeCategory) &&
     [product.name, product.description, product.detail, product.brand, product.category]
@@ -82,7 +138,7 @@ function App() {
   };
 
   return <div className="site-shell">
-    <div className="announcement"><span className="announce-dot" /> Your tech partner, from one device to a full office setup. <a href="#business">Explore business supply <ArrowUpRight size={13} /></a></div>
+    <div className="announcement"><span className="announce-dot" /> Gadgets for everyday. Technology for business. <a href="#business">Bulk supply <ArrowUpRight size={13} /></a></div>
     <header className="header">
       <a className="brand" href="#top" aria-label="SHEGCOMTECH home"><span className="brand-mark"><span /><span /><span /></span><span className="brand-name">SHEGCOM<span>TECH</span><small>TECHNOLOGY, MADE PRACTICAL.</small></span></a>
       <nav className={menuOpen ? "nav nav-open" : "nav"} aria-label="Main navigation">
@@ -102,22 +158,45 @@ function App() {
     {searchOpen && <div className="search-bar"><Search size={18} /><input autoFocus placeholder="Search laptops, phones, accessories…" value={search} onChange={e => setSearch(e.target.value)} /><button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label="Close search"><X size={18} /></button></div>}
 
     <main id="top">
-      <section className="hero">
-        <div className="hero-copy">
-          <div className="eyebrow"><span className="eyebrow-line" /> TECHNOLOGY THAT WORKS FOR YOU</div>
-          <h1>Good tech.<br /><span>Better possibilities.</span></h1>
-          <p className="hero-description">From your next everyday device to the tech that runs your business — get the right tools, without the runaround.</p>
-          <div className="hero-actions"><a className="button button-primary" href="#shop">Explore the store <ArrowRight size={17} /></a><a className="text-link" href="#business">Buying for a business? <ArrowUpRight size={15} /></a></div>
-          <div className="hero-proof"><div className="proof-icons"><span><ShieldCheck size={17} /></span><span><PackageCheck size={17} /></span><span><Headphones size={17} /></span></div><div><strong>Good choices start here.</strong><small>Helpful advice · Sourcing · After-sales support</small></div></div>
+      <section
+        className="hero hero-carousel"
+        aria-label="Featured SHEGCOMTECH services"
+        onMouseEnter={() => setHeroPaused(true)}
+        onMouseLeave={() => setHeroPaused(false)}
+        onFocusCapture={() => setHeroPaused(true)}
+        onBlurCapture={event => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setHeroPaused(false);
+        }}
+      >
+        <div className={"hero-stage hero-stage-" + activeHero}>
+          <div className="hero-copy" key={"hero-copy-" + activeHero}>
+            <div className="hero-kicker"><span className="hero-kicker-line" /> {heroSlides[activeHero].kicker}</div>
+            <h1>{heroSlides[activeHero].titleLead}<br /><span>{heroSlides[activeHero].titleAccent}</span></h1>
+            <p className="hero-description">{heroSlides[activeHero].description}</p>
+            <div className="hero-actions">
+              <a className="button hero-primary" href={heroSlides[activeHero].primaryHref}>{heroSlides[activeHero].primary}<ArrowRight size={17} /></a>
+              <a className="hero-secondary" href={heroSlides[activeHero].secondaryHref}>{heroSlides[activeHero].secondary}<ArrowUpRight size={15} /></a>
+            </div>
+            <div className="hero-small-note"><span className="hero-live-mark" /> TECHNOLOGY · BUSINESS SUPPLY · DIGITAL SERVICES</div>
+          </div>
+          <div className="hero-visual" key={"hero-visual-" + activeHero}>
+            <img src={photo(heroSlides[activeHero].image, 1300)} alt={heroSlides[activeHero].alt} fetchPriority={activeHero === 0 ? "high" : "auto"} />
+            <div className="hero-image-wash" />
+            <div className="hero-image-caption"><span>{heroSlides[activeHero].imageCaption}</span><span>0{activeHero + 1} / 03</span></div>
+          </div>
         </div>
-        <div className="hero-visual">
-          <div className="hero-grid" />
-          <div className="visual-topline"><span><span className="live-dot" /> THE RIGHT SETUP</span><span>01 / EVERYDAY TECH</span></div>
-          <div className="hero-product-image"><img src={photo("photo-1496181133206-80ce9b88a853", 1100)} alt="Modern laptop on a clean workspace" /></div>
-          <div className="floating-chip chip-top"><span className="chip-icon"><Zap size={17} /></span><span><b>Built around you</b><small>Personal & business</small></span></div>
-          <div className="floating-chip chip-bottom"><span className="chip-check"><Check size={17} /></span><span><b>Need it in bulk?</b><small>Let's source it.</small></span><ArrowUpRight size={17} /></div>
-          <div className="visual-caption"><span>THE TOOLS FOR WHAT'S NEXT.</span><ArrowDownRight size={20} /></div>
-          <div className="hero-index">SC<span>.</span>01</div>
+        <div className="hero-track">
+          <div className="hero-tabs" aria-label="Featured areas">
+            {heroSlides.map((slide, index) => <button type="button" key={slide.tabTitle} className={activeHero === index ? "hero-tab hero-tab-active" : "hero-tab"} onClick={() => setActiveHero(index)} aria-pressed={activeHero === index}>
+              <span className="hero-tab-number">0{index + 1}</span>
+              <span className="hero-tab-copy"><strong>{slide.tabTitle}</strong><small>{slide.tabSubtitle}</small></span>
+              <span className="hero-tab-line" />
+            </button>)}
+          </div>
+          <div className="hero-arrows">
+            <button type="button" aria-label="Previous feature" onClick={() => setActiveHero(index => (index + heroSlides.length - 1) % heroSlides.length)}><ChevronRight size={18} /></button>
+            <button type="button" aria-label="Next feature" onClick={() => setActiveHero(index => (index + 1) % heroSlides.length)}><ChevronRight size={18} /></button>
+          </div>
         </div>
       </section>
 
@@ -129,7 +208,7 @@ function App() {
       </section>
 
       <section className="shop-section section-wrap" id="shop">
-        <div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH STORE</div><h2>Find your next <span>favourite.</span></h2><p>Thoughtful tech for work, play and everything in between.</p></div><a className="view-all" href="#shop" onClick={() => { setActiveCategory("All products"); setSearch(""); }}>View all products <ArrowRight size={16} /></a></div>
+        <div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH STORE</div><h2>Find your next <span>upgrade.</span></h2><p>Browse the catalogue or ask us to source a model.</p></div><a className="view-all" href="#shop" onClick={() => { setActiveCategory("All products"); setSearch(""); }}>View all products <ArrowRight size={16} /></a></div>
         <div className="shop-layout">
           <aside className="category-sidebar"><span className="category-label">SHOP BY CATEGORY</span>{categories.map(cat => { const Icon = cat.icon; return <button key={cat.name} className={activeCategory === cat.name ? "category-link category-selected" : "category-link"} onClick={() => setActiveCategory(cat.name)}><Icon size={17} /><span>{cat.name}<small>{cat.count}</small></span><ChevronRight size={15} className="category-arrow" /></button>; })}<div className="sidebar-note"><Sparkles size={17} /><p>Not sure what fits? <a href="#contact">Talk to us.</a></p></div></aside>
           <div className="product-area">
@@ -158,13 +237,13 @@ function App() {
 
       <section className="business-section" id="business">
         <div className="business-inner">
-          <div className="business-copy"><div className="eyebrow eyebrow-light"><span className="eyebrow-line" /> FOR TEAMS THAT MEAN BUSINESS</div><h2>Equipping your business<br />shouldn't be <span>hard work.</span></h2><p>Opening a new office, upgrading your team's setup or sourcing equipment at scale? We'll help you get the right technology, in the right quantities, with one dependable point of contact.</p><ul className="business-points"><li><Check size={16} /> Laptops, monitors, phones & office equipment</li><li><Check size={16} /> CCTV, networking & security solutions</li><li><Check size={16} /> Bulk sourcing and tailored quotations</li><li><Check size={16} /> One-off purchases or ongoing supply</li></ul><button className="button button-white" onClick={() => { setQuoteOpen(true); setQuoteSent(false); }}>Talk to our supply team <ArrowRight size={17} /></button><span className="business-footnote">TELL US WHAT YOU NEED. WE'LL TAKE IT FROM THERE.</span></div>
+          <div className="business-copy"><div className="eyebrow eyebrow-light"><span className="eyebrow-line" /> FOR TEAMS THAT MEAN BUSINESS</div><h2>Equipping your business<br />shouldn't be <span>hard work.</span></h2><p>Laptops, displays, CCTV and office essentials — sourced for teams, projects and growing businesses.</p><ul className="business-points"><li><Check size={16} /> Laptops, monitors, phones & office equipment</li><li><Check size={16} /> CCTV, networking & security solutions</li><li><Check size={16} /> Bulk sourcing and tailored quotations</li><li><Check size={16} /> One-off purchases or ongoing supply</li></ul><button className="button button-white" onClick={() => { setQuoteOpen(true); setQuoteSent(false); }}>Talk to our supply team <ArrowRight size={17} /></button><span className="business-footnote">TELL US WHAT YOU NEED. WE'LL TAKE IT FROM THERE.</span></div>
           <div className="business-visual"><div className="business-photo"><img src={photo("photo-1497366754035-f200968a6e72", 1000)} alt="Modern office workspace ready for a technology setup" loading="lazy" /></div><div className="supply-card"><span className="supply-card-icon"><PackageCheck size={20} /></span><span><small>BUSINESS PROCUREMENT</small><strong>One request. A complete setup.</strong><p>Tell us your list, quantity and timeline.</p></span><ArrowUpRight size={18} /></div><div className="business-stamp"><span>SC</span><small>BUSINESS<br />SOLUTIONS</small></div></div>
         </div>
       </section>
 
       <section className="services-section section-wrap" id="services">
-        <div className="section-heading services-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> YOUR LOCAL DIGITAL WORKSPACE</div><h2>Some things are easier <span>with us.</span></h2><p>Need a printout, a document prepared or a digital task handled? Start online, then let us take care of the details.</p></div><div className="services-aside">NO NEED TO START<br />FROM SCRATCH <ArrowDownRight size={20} /></div></div>
+        <div className="section-heading services-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> YOUR LOCAL DIGITAL WORKSPACE</div><h2>Some things are easier <span>with us.</span></h2><p>Prints, documents and digital tasks. Start your request here.</p></div><div className="services-aside">NO NEED TO START<br />FROM SCRATCH <ArrowDownRight size={20} /></div></div>
         <div className="services-layout">
           <div className="service-copy-card"><div className="service-number">01 / PRINT & DOCUMENTS</div><div className="service-illustration"><div className="paper-sheet"><span /><span /><span /><span /><b>PDF</b></div><div className="printer-illustration"><Printer size={55} strokeWidth={1.3} /></div><span className="illus-orbit orbit-one" /><span className="illus-orbit orbit-two" /></div><h3>Send it in.<br />Pick it up ready.</h3><p>Upload your documents from home or work. Tell us what you need and we'll confirm the details before processing.</p><div className="service-mini-points"><span><Check size={14} /> Document printing</span><span><Check size={14} /> Scanning & copies</span><span><Check size={14} /> Typing & formatting</span></div></div>
           <form className="upload-card" onSubmit={submitService}>
@@ -182,7 +261,7 @@ function App() {
         </div>
       </section>
 
-      <section className="promise-strip" id="about"><div className="promise-intro"><span className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH DIFFERENCE</span><h2>Less tech stress.<br /><span>More getting things done.</span></h2></div><div className="promise-item"><span><Headphones size={20} /></span><b>Real human help</b><p>Get guidance before you buy, not just a product link.</p></div><div className="promise-item"><span><Search size={20} /></span><b>We can source it</b><p>Have a specific model or a long equipment list? Tell us.</p></div><div className="promise-item"><span><Truck size={20} /></span><b>Made for your needs</b><p>From a single accessory to a complete team setup.</p></div></section>
+      <section className="promise-strip" id="about"><div className="promise-intro"><span className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH DIFFERENCE</span><h2>Less tech stress.<br /><span>More getting things done.</span></h2></div><div className="promise-item"><span><Headphones size={20} /></span><b>Real human help</b><p>Advice before and after you buy.</p></div><div className="promise-item"><span><Search size={20} /></span><b>We can source it</b><p>Tell us what you need.</p></div><div className="promise-item"><span><Truck size={20} /></span><b>Made for your needs</b><p>From one device to bulk supply.</p></div></section>
     </main>
 
     <footer id="contact"><div className="footer-main"><div className="footer-brand-col"><a className="brand brand-footer" href="#top"><span className="brand-mark"><span /><span /><span /></span><span className="brand-name">SHEGCOM<span>TECH</span><small>TECHNOLOGY, MADE PRACTICAL.</small></span></a><p>Dependable technology, useful digital services and business supply — all in one place.</p><a href="mailto:hello@shegcomtech.com" className="footer-contact">Let's talk <ArrowUpRight size={15} /></a></div><div className="footer-links"><span>EXPLORE</span><a href="#shop">Shop technology</a><a href="#business">Business supply</a><a href="#services">Print & digital services</a><a href="#about">Why SHEGCOMTECH</a></div><div className="footer-links"><span>HERE TO HELP</span><a href="#contact">Contact the team</a><button onClick={() => setQuoteOpen(true)}>Request a quotation</button><a href="#services">Start a print request</a><small>Business hours and response times to be confirmed.</small></div><div className="footer-cta"><span className="footer-cta-mark"><ArrowUpRight size={24} /></span><h3>Have a list?<br />Let's make it happen.</h3><p>Tell us what you need. We'll help you figure out the next step.</p><button onClick={() => setQuoteOpen(true)}>Start a conversation <ArrowRight size={16} /></button></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} SHEGCOMTECH. All rights reserved.</span><span>BUILT AROUND WHAT YOU NEED. <span className="footer-blue">SC.</span></span></div></footer>
