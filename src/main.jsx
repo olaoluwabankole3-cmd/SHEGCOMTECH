@@ -7,6 +7,7 @@ import {
   Building2, Camera, Gamepad2, Plus, Trash2
 } from "lucide-react";
 import "./style.css";
+import { supabase } from "./lib/supabase.js";
 
 const categories = [
   { name: "All products", icon: ShoppingBag, count: "Explore all" },
@@ -92,24 +93,59 @@ function App() {
 
   useEffect(() => {
     let active = true;
-    fetch("/catalog.json", { headers: { Accept: "application/json" } })
-      .then(response => {
+    const publishProducts = rows => {
+      const cleanProducts = rows.filter(product =>
+        product && product.id != null && typeof product.name === "string" && typeof product.category === "string"
+      ).map(product => ({
+        ...product,
+        priceNgn: product.priceNgn == null ? null : Number(product.priceNgn),
+      })).filter(product => product.priceNgn == null || (Number.isFinite(product.priceNgn) && product.priceNgn >= 0));
+      setProducts(cleanProducts);
+      setCatalogStatus(cleanProducts.length ? "ready" : "empty");
+    };
+
+    const loadCatalog = async () => {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from("products")
+          .select("id,name,slug,sku,brand,category,description,price_ngn,compare_at_price_ngn,stock_quantity,image_url,badge,is_featured,is_active,created_at")
+          .eq("is_active", true)
+          .order("is_featured", { ascending: false })
+          .order("created_at", { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+          if (!active) return;
+          publishProducts(data.map(product => ({
+            id: product.id,
+            name: product.name,
+            detail: product.description || product.brand || "",
+            description: product.description || "",
+            brand: product.brand || "",
+            category: product.category,
+            priceNgn: product.price_ngn == null ? null : Number(product.price_ngn),
+            compareAtPriceNgn: product.compare_at_price_ngn == null ? null : Number(product.compare_at_price_ngn),
+            imageUrl: product.image_url || "",
+            tag: product.badge || (product.is_featured ? "FEATURED" : ""),
+            stockQuantity: product.stock_quantity,
+            sku: product.sku || "",
+            tone: "neutral",
+          })));
+          return;
+        }
+      }
+
+      try {
+        const response = await fetch("/catalog.json", { headers: { Accept: "application/json" } });
         if (!response.ok) throw new Error("Catalogue unavailable");
-        return response.json();
-      })
-      .then(data => {
-        if (!active) return;
+        const data = await response.json();
         if (!Array.isArray(data)) throw new Error("Catalogue must be a list");
-        const cleanProducts = data.filter(product =>
-          product && product.id != null && typeof product.name === "string" && typeof product.category === "string"
-        ).map(product => ({
-          ...product,
-          priceNgn: Number.isFinite(product.priceNgn) && product.priceNgn >= 0 ? product.priceNgn : null,
-        }));
-        setProducts(cleanProducts);
-        setCatalogStatus(cleanProducts.length ? "ready" : "empty");
-      })
-      .catch(() => { if (active) setCatalogStatus("error"); });
+        if (active) publishProducts(data);
+      } catch {
+        if (active) setCatalogStatus("error");
+      }
+    };
+
+    loadCatalog();
     return () => { active = false; };
   }, []);
 
