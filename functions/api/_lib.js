@@ -33,7 +33,7 @@ export function validateProduct(input) {
   if (!input || typeof input !== "object") return null;
   const name = String(input.name || "").trim();
   const category = String(input.category || "");
-  const slug = String(input.slug || name.toLowerCase().normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""));
+  const slug = String(input.slug || name.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""));
   const price = input.price_ngn == null || input.price_ngn === "" ? null : Number(input.price_ngn);
   const compare = input.compare_at_price_ngn == null || input.compare_at_price_ngn === "" ? null : Number(input.compare_at_price_ngn);
   const stock = Number(input.stock_quantity ?? 0);
