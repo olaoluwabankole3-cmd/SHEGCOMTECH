@@ -1,8 +1,6 @@
 -- SHEGCOMTECH: Cloudflare D1 schema (SQLite-compatible SQL)
 -- Run this in the SQL Console for the shegcomtech-db database.
--- This creates empty tables only; it does not insert product data.
-
-PRAGMA foreign_keys = ON;
+-- D1 enforces foreign-key rules by default; this creates empty tables only.
 
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY NOT NULL,
