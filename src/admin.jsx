@@ -34,10 +34,10 @@ function SetupScreen() {
       <span className="gate-icon"><LockKeyhole size={24} /></span>
       <span className="admin-overline">ADMIN CONNECTION REQUIRED</span>
       <h1>Connect the catalogue.</h1>
-      <p>The admin page is ready, but it needs the Supabase project connection before it can store products or images.</p>
-      <div className="setup-step"><span>01</span><div><strong>Run the database setup</strong><small>Execute <code>supabase/schema.sql</code> in your Supabase SQL Editor.</small></div></div>
-      <div className="setup-step"><span>02</span><div><strong>Add Cloudflare variables</strong><small>Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code>, then redeploy.</small></div></div>
-      <a className="admin-primary-link" href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">Open Supabase <ExternalLink size={15} /></a>
+      <p>The admin interface connects to Cloudflare Pages Functions, with product records stored in D1 and product images stored in R2.</p>
+      <div className="setup-step"><span>01</span><div><strong>Run the database setup</strong><small>Confirm the <code>SHEGCOMTECH_DB</code> D1 binding points to <code>shegcomtech-db</code>.</small></div></div>
+      <div className="setup-step"><span>02</span><div><strong>Add Cloudflare variables</strong><small>Set the server-side <code>ADMIN_EMAIL</code> and <code>ADMIN_PASSWORD</code> secrets in Cloudflare Pages, then redeploy.</small></div></div>
+      <a className="admin-primary-link" href="https://dash.cloudflare.com/ target="_blank" rel="noreferrer">Open Cloudflare <ExternalLink size={15} /></a>
     </div>
     <p className="gate-foot">SHEGCOMTECH · PRIVATE STORE MANAGEMENT</p>
   </main>;
