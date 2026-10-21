@@ -8,7 +8,7 @@ export async function onRequestGet({ request, env }) {
 
 export async function onRequestDelete({ request, env }) {
   const cookie = request.headers.get("Cookie") || "";
-  const token = cookie.match(/(?:^|;\\s*)shegcomtech_admin=([^;]+)/)?.[1];
+  const token = cookie.match(/(?:^|;\s*)shegcomtech_admin=([^;]+)/)?.[1];
   if (token && env.SHEGCOMTECH_DB) {
     const { hashToken } = await import("../_lib.js");
     await env.SHEGCOMTECH_DB.prepare("DELETE FROM admin_sessions WHERE token_hash = ?").bind(await hashToken(token)).run();
