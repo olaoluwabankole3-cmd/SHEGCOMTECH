@@ -219,7 +219,7 @@ function App() {
       frame = window.requestAnimationFrame(() => {
         frame = 0;
         const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-        document.documentElement.style.setProperty("--page-progress", String(scrollable > 0 ? window.scrollY / scrollable : 0));
+        document.documentElement.style.setProperty("--page-progress", String(scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0));
         if (reduceMotion) return;
         document.querySelectorAll(".hero-visual img, .business-photo img").forEach(image => {
           const bounds = image.parentElement.getBoundingClientRect();
