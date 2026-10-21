@@ -192,3 +192,35 @@
   .hero-copy,.hero-visual img { animation:none!important; }
   .hero-primary { transition:none!important; }
 }
+
+
+/* Category discovery gives the store a real starting point before live SKUs are added. */
+.shop-layout-empty { grid-template-columns:minmax(0,1fr); }
+.shop-layout-empty .product-area { min-width:0; }
+.category-launch-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid #e1e6ee; border-left:1px solid #e1e6ee; }
+.category-launch-item { position:relative; display:flex; align-items:center; gap:13px; min-width:0; min-height:95px; padding:18px 15px; text-align:left; border:0; border-right:1px solid #e1e6ee; border-bottom:1px solid #e1e6ee; background:white; color:var(--ink); cursor:pointer; transition:background .18s ease; }
+.category-launch-item:hover { background:#f6f8fc; }
+.category-launch-icon { display:grid; place-items:center; flex:0 0 42px; width:42px; height:42px; background:#edf2ff; color:var(--blue); border-radius:2px; }
+.category-launch-copy { display:flex; flex-direction:column; gap:5px; min-width:0; flex:1; }
+.category-launch-copy strong { color:#24334a; font-size:11px; line-height:1.4; font-weight:800; }
+.category-launch-copy small { color:#8a95a5; font-size:9px; line-height:1.4; }
+.category-launch-arrow { flex:0 0 auto; color:#7e8aa0; transition:transform .18s ease,color .18s ease; }
+.category-launch-item:hover .category-launch-arrow { transform:translate(2px,-2px); color:var(--blue); }
+@media(max-width:820px) {
+  .header { gap:10px; }
+  .header-actions { flex:0 0 auto; }
+  .category-launch-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .category-launch-item { min-height:82px; padding:13px 10px; gap:9px; }
+  .category-launch-icon { width:35px; height:35px; flex-basis:35px; }
+  .category-launch-icon svg { width:18px; height:18px; }
+  .category-launch-copy strong { font-size:10px; }
+  .category-launch-copy small { font-size:8px; }
+}
+@media(max-width:560px) {
+  .category-launch-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .category-launch-item { min-height:78px; gap:7px; padding:12px 8px; }
+  .category-launch-icon { width:31px; height:31px; flex-basis:31px; }
+  .category-launch-copy strong { font-size:9px; overflow-wrap:anywhere; }
+  .category-launch-copy small { font-size:7px; }
+  .category-launch-arrow { width:13px; height:13px; }
+}
