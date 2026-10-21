@@ -214,11 +214,15 @@ function App() {
 
       <section className="shop-section section-wrap" id="shop">
         <div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH STORE</div><h2>Find your next <span>upgrade.</span></h2><p>Browse the catalogue or ask us to source a model.</p></div><a className="view-all" href="#shop" onClick={() => { setActiveCategory("All products"); setSearch(""); }}>View all products <ArrowRight size={16} /></a></div>
-        <div className="shop-layout">
-          <aside className="category-sidebar"><span className="category-label">SHOP BY CATEGORY</span>{categories.map(cat => { const Icon = cat.icon; return <button key={cat.name} className={activeCategory === cat.name ? "category-link category-selected" : "category-link"} onClick={() => setActiveCategory(cat.name)}><Icon size={17} /><span>{cat.name}<small>{cat.count}</small></span><ChevronRight size={15} className="category-arrow" /></button>; })}<div className="sidebar-note"><Sparkles size={17} /><p>Not sure what fits? <a href="#contact">Talk to us.</a></p></div></aside>
+        <div className={catalogStatus === "empty" ? "shop-layout shop-layout-empty" : "shop-layout"}>
+          {catalogStatus !== "empty" && <aside className="category-sidebar"><span className="category-label">SHOP BY CATEGORY</span>{categories.map(cat => { const Icon = cat.icon; return <button key={cat.name} className={activeCategory === cat.name ? "category-link category-selected" : "category-link"} onClick={() => setActiveCategory(cat.name)}><Icon size={17} /><span>{cat.name}<small>{cat.count}</small></span><ChevronRight size={15} className="category-arrow" /></button>; })}<div className="sidebar-note"><Sparkles size={17} /><p>Not sure what fits? <a href="#contact">Talk to us.</a></p></div></aside>
           <div className="product-area">
             <div className="product-toolbar"><span>{search ? "Search results" : activeCategory === "All products" ? "The catalogue" : activeCategory}<b>{visibleProducts.length.toString().padStart(2, "0")}</b></span><span className="sort-label">{catalogStatus === "ready" ? "CURRENT LISTING" : "CATALOGUE"}</span></div>
-            <div className="product-grid">{visibleProducts.length ? visibleProducts.map((product, i) => <article className="product-card" key={product.id}>
+            {catalogStatus === "empty" && activeCategory === "All products" && !search ? <div className="category-launch-grid" aria-label="Browse by category">
+              {categories.filter(category => category.name !== "All products").map(category => { const Icon = category.icon; return <button className="category-launch-item" type="button" key={category.name} onClick={() => { setQuoteForm(form => ({ ...form, items: category.name })); setQuoteSent(false); setQuoteOpen(true); }}>
+                <span className="category-launch-icon"><Icon size={20} strokeWidth={1.6} /></span><span className="category-launch-copy"><strong>{category.name}</strong><small>{category.count}</small></span><ArrowUpRight size={16} className="category-launch-arrow" />
+              </button>; })}
+            </div> : <div className="product-grid">{visibleProducts.length ? visibleProducts.map((product, i) => <article className="product-card" key={product.id}>
               <div className={"product-image product-" + (product.tone || "neutral")}>
                 {product.tag && <span className="product-tag">{product.tag}</span>}
                 {product.imageUrl ? <img src={product.imageUrl} alt={product.name} loading="lazy" /> : <div className="product-placeholder"><span>{product.category}</span><PackageCheck size={30} strokeWidth={1.4} /></div>}
@@ -234,7 +238,7 @@ function App() {
               <h3>{catalogStatus === "loading" ? "Preparing the catalogue" : catalogStatus === "error" ? "Catalogue unavailable" : search ? "No matches found" : catalogStatus === "empty" && activeCategory === "All products" ? "We're getting the store ready." : "No products in this category yet."}</h3>
               <p>{catalogStatus === "loading" ? "Checking the current product list." : catalogStatus === "error" ? "The product list could not be loaded. Please contact us to check availability." : search ? "Try a different product name, or ask us to source it." : "We only list products that have been added to the catalogue. Tell us what you need and we'll check availability."}</p>
               <div className="catalog-empty-actions"><button className="button button-primary" onClick={() => { setQuoteForm(form => ({ ...form, items: search || activeCategory === "All products" ? "" : activeCategory })); setQuoteSent(false); setQuoteOpen(true); }}>Ask us to source an item <ArrowRight size={16} /></button>{search && <button className="text-link" onClick={() => setSearch("")}>Clear search</button>}</div>
-            </div>}</div>
+            </div>}</div>}
             <div className="catalog-note"><span><ShieldCheck size={17} /></span><p><strong>Looking for a specific model?</strong> Our catalogue is only a starting point. Ask us to source the exact device you need.</p><button onClick={() => setQuoteOpen(true)}>Request a quote <ArrowRight size={15} /></button></div>
           </div>
         </div>
