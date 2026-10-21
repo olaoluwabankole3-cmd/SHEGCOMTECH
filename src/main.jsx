@@ -25,8 +25,8 @@ const photo = (id, width = 800) => "https://images.unsplash.com/" + id + "?auto=
 const heroSlides = [
   {
     kicker: "THE TECH EDIT",
-    titleLead: "Your next upgrade",
-    titleAccent: "starts here.",
+    titleLead: "Make room for",
+    titleAccent: "better tech.",
     description: "Laptops, phones, gaming and everyday essentials.",
     primary: "Browse technology",
     primaryHref: "#shop",
@@ -40,8 +40,8 @@ const heroSlides = [
   },
   {
     kicker: "FOR WORK THAT MOVES",
-    titleLead: "Big plans.",
-    titleAccent: "Better equipped.",
+    titleLead: "Business tech.",
+    titleAccent: "Sorted.",
     description: "Office devices, displays and security equipment for your team.",
     primary: "Request a business quote",
     primaryHref: "#business",
@@ -56,7 +56,7 @@ const heroSlides = [
   {
     kicker: "PRINT & DIGITAL",
     titleLead: "Send it from",
-    titleAccent: "where you are.",
+    titleAccent: "home.",
     description: "Prepare document and print requests before you visit.",
     primary: "Start a print request",
     primaryHref: "#services",
@@ -236,10 +236,10 @@ function App() {
             </article>) : <div className="empty-results catalog-empty">
               <span className="catalog-empty-index">{catalogStatus === "loading" ? "01" : "SC"}</span>
               <h3>{catalogStatus === "loading" ? "Preparing the catalogue" : catalogStatus === "error" ? "Catalogue unavailable" : search ? "No matches found" : catalogStatus === "empty" && activeCategory === "All products" ? "We're getting the store ready." : "No products in this category yet."}</h3>
-              <p>{catalogStatus === "loading" ? "Checking the current product list." : catalogStatus === "error" ? "The product list could not be loaded. Please contact us to check availability." : search ? "Try a different product name, or ask us to source it." : "We only list products that have been added to the catalogue. Tell us what you need and we'll check availability."}</p>
+              <p>{catalogStatus === "loading" ? "Checking the current product list." : catalogStatus === "error" ? "The product list could not be loaded. Please contact us to check availability." : search ? "Try a different product name, or ask us to source it." : "We're adding confirmed listings. Tell us what you need and we'll check availability."}</p>
               <div className="catalog-empty-actions"><button className="button button-primary" onClick={() => { setQuoteForm(form => ({ ...form, items: search || activeCategory === "All products" ? "" : activeCategory })); setQuoteSent(false); setQuoteOpen(true); }}>Ask us to source an item <ArrowRight size={16} /></button>{search && <button className="text-link" onClick={() => setSearch("")}>Clear search</button>}</div>
             </div>}</div>}
-            <div className="catalog-note"><span><ShieldCheck size={17} /></span><p><strong>Looking for a specific model?</strong> Our catalogue is only a starting point. Ask us to source the exact device you need.</p><button onClick={() => setQuoteOpen(true)}>Request a quote <ArrowRight size={15} /></button></div>
+            {catalogStatus === "ready" && <div className="catalog-note"><span><ShieldCheck size={17} /></span><p><strong>Looking for a specific model?</strong> Our catalogue is only a starting point. Ask us to source the exact device you need.</p><button onClick={() => setQuoteOpen(true)}>Request a quote <ArrowRight size={15} /></button></div>}
           </div>
         </div>
       </section>
