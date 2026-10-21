@@ -18,7 +18,7 @@ export function secureCompare(a, b) {
 export async function requireAdmin(request, env) {
   if (!env.SHEGCOMTECH_DB) return null;
   const cookie = request.headers.get("Cookie") || "";
-  const token = cookie.match(/(?:^|;\\s*)shegcomtech_admin=([^;]+)/)?.[1];
+  const token = cookie.match(/(?:^|;\s*)shegcomtech_admin=([^;]+)/)?.[1];
   if (!token) return null;
   const hash = await hashToken(token);
   const now = Math.floor(Date.now() / 1000);
