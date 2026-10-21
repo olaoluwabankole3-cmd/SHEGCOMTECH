@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronDown, ChevronRight,
-  Clock3, FileUp, Headphones, Laptop, Menu, Monitor, PackageCheck, Printer,
+  ArrowRight, ArrowUpRight, Check, ChevronDown, ChevronRight,
+  FileUp, Headphones, Laptop, Menu, Monitor, PackageCheck, Printer,
   Search, ShieldCheck, ShoppingBag, Smartphone, Sparkles, Truck, X, Zap,
-  Building2, Camera, Gamepad2, Plus, Minus, Trash2
+  Building2, Camera, Gamepad2, Plus, Trash2
 } from "lucide-react";
 import "./style.css";
 
