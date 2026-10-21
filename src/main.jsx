@@ -119,6 +119,126 @@ function App() {
     return () => window.clearInterval(timer);
   }, [heroPaused]);
 
+  // Reveal each section as it enters the viewport, including catalogue items loaded later.
+  useEffect(() => {
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion || !("IntersectionObserver" in window)) return undefined;
+
+    const selector = [
+      "main > .service-strip", ".section-heading", ".strip-item", ".category-launch-item",
+      ".product-card", ".business-copy", ".business-visual", ".service-copy-card",
+      ".upload-card", ".promise-intro", ".promise-item", ".footer-main > *", ".footer-bottom"
+    ].join(", ");
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -36px 0px" });
+
+    const register = root => {
+      const elements = [];
+      if (root instanceof Element && root.matches(selector)) elements.push(root);
+      if (root.querySelectorAll) elements.push(...root.querySelectorAll(selector));
+      elements.forEach(element => {
+        if (element.classList.contains("scroll-reveal")) return;
+        element.classList.add("scroll-reveal");
+        observer.observe(element);
+      });
+    };
+
+    register(document);
+    const main = document.querySelector("main");
+    const mutations = main ? new MutationObserver(records => {
+      records.forEach(record => record.addedNodes.forEach(node => {
+        if (node instanceof Element) register(node);
+      }));
+    }) : null;
+    if (main && mutations) mutations.observe(main, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      if (mutations) mutations.disconnect();
+    };
+  }, []);
+
+  // Pointer-driven depth on large visual surfaces and product/category items.
+  useEffect(() => {
+    if (!window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return undefined;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+
+    const selector = ".hero-visual, .business-visual, .product-card, .category-launch-item";
+    let activeSurface = null;
+    const clearSurface = surface => {
+      if (!surface) return;
+      surface.style.removeProperty("--tilt-x");
+      surface.style.removeProperty("--tilt-y");
+      surface.style.removeProperty("--pointer-x");
+      surface.style.removeProperty("--pointer-y");
+    };
+    const move = event => {
+      if (event.pointerType && event.pointerType !== "mouse") return;
+      const surface = event.target instanceof Element ? event.target.closest(selector) : null;
+      if (activeSurface && activeSurface !== surface) clearSurface(activeSurface);
+      if (!surface) { activeSurface = null; return; }
+      const bounds = surface.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      const x = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+      const y = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
+      const intensity = surface.matches(".product-card") ? 5 : surface.matches(".category-launch-item") ? 3 : 2.6;
+      surface.style.setProperty("--tilt-x", ((0.5 - y) * intensity).toFixed(2) + "deg");
+      surface.style.setProperty("--tilt-y", ((x - 0.5) * intensity).toFixed(2) + "deg");
+      surface.style.setProperty("--pointer-x", (x * 100).toFixed(1) + "%");
+      surface.style.setProperty("--pointer-y", (y * 100).toFixed(1) + "%");
+      activeSurface = surface;
+    };
+    const out = event => {
+      if (!activeSurface) return;
+      const leaving = event.target instanceof Element ? event.target.closest(selector) : null;
+      if (leaving === activeSurface && (!event.relatedTarget || !activeSurface.contains(event.relatedTarget))) {
+        clearSurface(activeSurface);
+        activeSurface = null;
+      }
+    };
+    document.addEventListener("pointermove", move, { passive: true });
+    document.addEventListener("pointerout", out, { passive: true });
+    return () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerout", out);
+      clearSurface(activeSurface);
+    };
+  }, []);
+
+  // A slim scroll indicator plus low-amplitude image parallax keeps the page feeling responsive.
+  useEffect(() => {
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let frame = 0;
+    const update = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        document.documentElement.style.setProperty("--page-progress", String(scrollable > 0 ? window.scrollY / scrollable : 0));
+        if (reduceMotion) return;
+        document.querySelectorAll(".hero-visual img, .business-photo img").forEach(image => {
+          const bounds = image.parentElement.getBoundingClientRect();
+          if (bounds.bottom < -80 || bounds.top > window.innerHeight + 80) return;
+          const distance = (window.innerHeight / 2 - (bounds.top + bounds.height / 2)) * 0.018;
+          image.style.setProperty("--parallax-y", Math.max(-12, Math.min(12, distance)).toFixed(2) + "px");
+        });
+      });
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const visibleProducts = useMemo(() => products.filter(product =>
     (activeCategory === "All products" || product.category === activeCategory) &&
     [product.name, product.description, product.detail, product.brand, product.category]
@@ -205,11 +325,10 @@ function App() {
         </div>
       </section>
 
-      <section className="service-strip" aria-label="What we do">
-        <div className="strip-intro"><span className="strip-kicker">ONE PARTNER. MORE POSSIBILITIES.</span><strong>Tech for every side of life.</strong></div>
-        <a href="#shop" className="strip-item"><span className="strip-icon"><ShoppingBag size={20} /></span><span><b>Shop devices</b><small>Everyday essentials</small></span><ArrowUpRight size={16} /></a>
-        <a href="#business" className="strip-item"><span className="strip-icon"><Building2 size={20} /></span><span><b>Business supply</b><small>Bulk & procurement</small></span><ArrowUpRight size={16} /></a>
-        <a href="#services" className="strip-item"><span className="strip-icon"><Printer size={20} /></span><span><b>Print & digital</b><small>From anywhere</small></span><ArrowUpRight size={16} /></a>
+      <section className="service-strip" aria-label="Explore SHEGCOMTECH">
+        <a href="#shop" className="strip-item"><span className="strip-icon"><ShoppingBag size={20} /></span><span><b>Shop devices</b><small>Everyday tech</small></span><ArrowUpRight size={16} /></a>
+        <a href="#business" className="strip-item"><span className="strip-icon"><Building2 size={20} /></span><span><b>Business supply</b><small>Bulk orders</small></span><ArrowUpRight size={16} /></a>
+        <a href="#services" className="strip-item"><span className="strip-icon"><Printer size={20} /></span><span><b>Print & digital</b><small>Start online</small></span><ArrowUpRight size={16} /></a>
       </section>
 
       <section className="shop-section section-wrap" id="shop">
@@ -252,7 +371,7 @@ function App() {
       </section>
 
       <section className="services-section section-wrap" id="services">
-        <div className="section-heading services-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> YOUR LOCAL DIGITAL WORKSPACE</div><h2>Some things are easier <span>with us.</span></h2><p>Prints, documents and digital tasks. Start your request here.</p></div><div className="services-aside">NO NEED TO START<br />FROM SCRATCH <ArrowDownRight size={20} /></div></div>
+        <div className="section-heading services-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> PRINT & DIGITAL</div><h2>Print, scan, <span>done.</span></h2></div></div>
         <div className="services-layout">
           <div className="service-copy-card"><div className="service-number">01 / PRINT & DOCUMENTS</div><div className="service-illustration"><div className="paper-sheet"><span /><span /><span /><span /><b>PDF</b></div><div className="printer-illustration"><Printer size={55} strokeWidth={1.3} /></div><span className="illus-orbit orbit-one" /><span className="illus-orbit orbit-two" /></div><h3>Send it in.<br />Pick it up ready.</h3><p>Send documents from anywhere. We'll confirm details before printing.</p><div className="service-mini-points"><span><Check size={14} /> Document printing</span><span><Check size={14} /> Scanning & copies</span><span><Check size={14} /> Typing & formatting</span></div></div>
           <form className="upload-card" onSubmit={submitService}>
@@ -270,7 +389,7 @@ function App() {
         </div>
       </section>
 
-      <section className="promise-strip" id="about"><div className="promise-intro"><span className="eyebrow"><span className="eyebrow-line" /> THE SHEGCOMTECH DIFFERENCE</span><h2>Less tech stress.<br /><span>More getting things done.</span></h2></div><div className="promise-item"><span><Headphones size={20} /></span><b>Real human help</b><p>Advice before and after you buy.</p></div><div className="promise-item"><span><Search size={20} /></span><b>We can source it</b><p>Tell us what you need.</p></div><div className="promise-item"><span><Truck size={20} /></span><b>Made for your needs</b><p>From one device to bulk supply.</p></div></section>
+      <section className="promise-strip" id="about"><div className="promise-intro"><span className="eyebrow"><span className="eyebrow-line" /> SHEGCOMTECH</span><h2>Good tech.<br /><span>Real support.</span></h2></div><div className="promise-item"><span><Headphones size={20} /></span><b>Human help</b></div><div className="promise-item"><span><Search size={20} /></span><b>We source it</b></div><div className="promise-item"><span><Truck size={20} /></span><b>Single or bulk</b></div></section>
     </main>
 
     <footer id="contact"><div className="footer-main"><div className="footer-brand-col"><a className="brand brand-footer" href="#top"><span className="brand-mark"><span /><span /><span /></span><span className="brand-name">SHEGCOM<span>TECH</span><small>TECHNOLOGY, MADE PRACTICAL.</small></span></a><p>Dependable technology, useful digital services and business supply — all in one place.</p><a href="mailto:hello@shegcomtech.com" className="footer-contact">Let's talk <ArrowUpRight size={15} /></a></div><div className="footer-links"><span>EXPLORE</span><a href="#shop">Shop technology</a><a href="#business">Business supply</a><a href="#services">Print & digital services</a><a href="#about">Why SHEGCOMTECH</a></div><div className="footer-links"><span>HERE TO HELP</span><a href="#contact">Contact the team</a><button onClick={() => setQuoteOpen(true)}>Request a quotation</button><a href="#services">Start a print request</a><small>Business hours and response times to be confirmed.</small></div><div className="footer-cta"><span className="footer-cta-mark"><ArrowUpRight size={24} /></span><h3>Have a list?<br />Let's make it happen.</h3><p>Tell us what you need. We'll help you figure out the next step.</p><button onClick={() => setQuoteOpen(true)}>Start a conversation <ArrowRight size={16} /></button></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} SHEGCOMTECH. All rights reserved.</span><span>BUILT AROUND WHAT YOU NEED. <span className="footer-blue">SC.</span></span></div></footer>
