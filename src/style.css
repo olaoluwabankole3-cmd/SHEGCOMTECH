@@ -224,3 +224,16 @@
   .category-launch-copy small { font-size:7px; }
   .category-launch-arrow { width:13px; height:13px; }
 }
+
+
+@media(max-width:1000px) {
+  .header-search { display:none; }
+  .mobile-search-toggle { display:grid; }
+}
+.search-bar { max-width:1290px; width:calc(100% - 10.6%); margin:0 auto; }
+.search-bar .search-submit { display:grid; place-items:center; flex:0 0 34px; width:34px; height:34px; border:0; border-radius:2px; background:var(--blue); color:#fff; cursor:pointer; }
+@media(max-width:560px) {
+  .search-bar { width:calc(100% - 24px); gap:8px; }
+  .search-bar input { min-width:0; width:100%; }
+  .search-bar .search-submit { flex-basis:31px; width:31px; height:31px; }
+}
