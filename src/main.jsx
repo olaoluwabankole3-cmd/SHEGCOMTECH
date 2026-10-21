@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Check, ChevronDown, ChevronRight,
@@ -8,14 +8,6 @@ import {
 } from "lucide-react";
 import "./style.css";
 
-const products = [
-  { id: 1, name: "Everyday laptop", detail: "Work-ready performance", price: "₦485,000", category: "Laptops", tag: "POPULAR", image: "photo-1496181133206-80ce9b88a853", tone: "sand" },
-  { id: 2, name: "Studio monitor", detail: "Crisp detail. More room.", price: "₦265,000", category: "Monitors", tag: "WORKSPACE PICK", image: "photo-1527443224154-c4a3942d3acf", tone: "blue" },
-  { id: 3, name: "Smartphone", detail: "Power through your day", price: "₦320,000", category: "Phones", tag: "JUST IN", image: "photo-1511707171634-5f897ff02aa9", tone: "lavender" },
-  { id: 4, name: "Security camera kit", detail: "A smarter way to keep watch", price: "₦185,000", category: "CCTV & security", tag: "SECURITY", image: "photo-1557324232-b8917d3c3dcb", tone: "mint" },
-  { id: 5, name: "Gaming console", detail: "Your next level starts here", price: "₦690,000", category: "Gaming", tag: "PLAY MORE", image: "photo-1486572788966-cfd3df1f5b42", tone: "sand" },
-  { id: 6, name: "Wireless keyboard", detail: "A cleaner desk setup", price: "₦48,000", category: "Accessories", tag: "DESK ESSENTIAL", image: "photo-1587829741301-dc798b83add3", tone: "blue" },
-];
 const categories = [
   { name: "All products", icon: ShoppingBag, count: "Explore all" },
   { name: "Laptops", icon: Laptop, count: "Work & study" },
@@ -23,11 +15,16 @@ const categories = [
   { name: "Phones", icon: Smartphone, count: "Stay connected" },
   { name: "CCTV & security", icon: Camera, count: "Protect your space" },
   { name: "Gaming", icon: Gamepad2, count: "Game on" },
+  { name: "Appliances", icon: Zap, count: "Home & office" },
+  { name: "Networking", icon: Monitor, count: "Connected spaces" },
+  { name: "Printers & supplies", icon: Printer, count: "Print essentials" },
   { name: "Accessories", icon: Zap, count: "The little extras" },
 ];
 const photo = (id, width = 800) => "https://images.unsplash.com/" + id + "?auto=format&fit=crop&w=" + width + "&q=85";
 
 function App() {
+  const [products, setProducts] = useState([]);
+  const [catalogStatus, setCatalogStatus] = useState("loading");
   const [activeCategory, setActiveCategory] = useState("All products");
   const [cart, setCart] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,12 +40,35 @@ function App() {
   const [quoteForm, setQuoteForm] = useState({ name: "", company: "", email: "", phone: "", items: "", quantity: "" });
   const fileInput = useRef(null);
 
+  useEffect(() => {
+    let active = true;
+    fetch("/catalog.json", { headers: { Accept: "application/json" } })
+      .then(response => {
+        if (!response.ok) throw new Error("Catalogue unavailable");
+        return response.json();
+      })
+      .then(data => {
+        if (!active) return;
+        if (!Array.isArray(data)) throw new Error("Catalogue must be a list");
+        const cleanProducts = data.filter(product =>
+          product && product.id != null && typeof product.name === "string" && typeof product.category === "string"
+        ).map(product => ({
+          ...product,
+          priceNgn: Number.isFinite(product.priceNgn) && product.priceNgn >= 0 ? product.priceNgn : null,
+        }));
+        setProducts(cleanProducts);
+        setCatalogStatus(cleanProducts.length ? "ready" : "empty");
+      })
+      .catch(() => { if (active) setCatalogStatus("error"); });
+    return () => { active = false; };
+  }, []);
+
   const visibleProducts = useMemo(() => products.filter(p =>
     (activeCategory === "All products" || p.category === activeCategory) &&
     (p.name + " " + p.detail + " " + p.category).toLowerCase().includes(search.toLowerCase())
   ), [activeCategory, search]);
   const addToCart = (product) => setCart(current => [...current, product]);
-  const cartTotal = cart.reduce((sum, p) => sum + Number(p.price.replace(/[₦,]/g, "")), 0);
+  const cartTotal = cart.reduce((sum, product) => sum + product.priceNgn, 0);
   const formatMoney = (amount) => "₦" + amount.toLocaleString("en-NG");
   const submitService = (event) => {
     event.preventDefault();
@@ -112,11 +132,24 @@ function App() {
         <div className="shop-layout">
           <aside className="category-sidebar"><span className="category-label">SHOP BY CATEGORY</span>{categories.map(cat => { const Icon = cat.icon; return <button key={cat.name} className={activeCategory === cat.name ? "category-link category-selected" : "category-link"} onClick={() => setActiveCategory(cat.name)}><Icon size={17} /><span>{cat.name}<small>{cat.count}</small></span><ChevronRight size={15} className="category-arrow" /></button>; })}<div className="sidebar-note"><Sparkles size={17} /><p>Not sure what fits? <a href="#contact">Talk to us.</a></p></div></aside>
           <div className="product-area">
-            <div className="product-toolbar"><span>{search ? "Search results" : activeCategory === "All products" ? "A few good places to start" : activeCategory}<b>{visibleProducts.length.toString().padStart(2, "0")}</b></span><span className="sort-label">CURATED FOR YOU <ChevronDown size={14} /></span></div>
+            <div className="product-toolbar"><span>{search ? "Search results" : activeCategory === "All products" ? "The catalogue" : activeCategory}<b>{visibleProducts.length.toString().padStart(2, "0")}</b></span><span className="sort-label">{catalogStatus === "ready" ? "CURRENT LISTING" : "CATALOGUE"}</span></div>
             <div className="product-grid">{visibleProducts.length ? visibleProducts.map((product, i) => <article className="product-card" key={product.id}>
-              <div className={"product-image product-" + product.tone}><span className="product-tag">{product.tag}</span><img src={photo(product.image, 700)} alt={product.name} loading="lazy" /><button className="quick-add" aria-label={"Add " + product.name + " to bag"} onClick={() => addToCart(product)}><Plus size={19} /></button><span className="product-number">0{i + 1}</span></div>
-              <div className="product-info"><span className="product-category">{product.category}</span><h3>{product.name}</h3><div className="product-bottom"><div><p>{product.detail}</p><strong>{product.price}</strong></div><button className="add-button" onClick={() => addToCart(product)} aria-label={"Add " + product.name + " to bag"}><Plus size={17} /></button></div></div>
-            </article>) : <div className="empty-results"><Search size={24} /><h3>No matches just yet.</h3><p>Try another search or browse all products.</p><button className="button button-primary" onClick={() => { setSearch(""); setActiveCategory("All products"); }}>See all products</button></div>}</div>
+              <div className={"product-image product-" + (product.tone || "neutral")}>
+                {product.tag && <span className="product-tag">{product.tag}</span>}
+                {product.imageUrl ? <img src={product.imageUrl} alt={product.name} loading="lazy" /> : <div className="product-placeholder"><span>{product.category}</span><PackageCheck size={30} strokeWidth={1.4} /></div>}
+                {typeof product.priceNgn === "number" && <button className="quick-add" aria-label={"Add " + product.name + " to bag"} onClick={() => addToCart(product)}><Plus size={19} /></button>}
+                <span className="product-number">{String(i + 1).padStart(2, "0")}</span>
+              </div>
+              <div className="product-info"><span className="product-category">{product.category}</span><h3>{product.name}</h3><div className="product-bottom"><div><p>{product.description || product.detail || product.brand || ""}</p><strong>{typeof product.priceNgn === "number" ? formatMoney(product.priceNgn) : "Price on request"}</strong></div><button className="add-button" onClick={() => {
+                if (typeof product.priceNgn === "number") addToCart(product);
+                else { setQuoteForm(form => ({ ...form, items: product.name })); setQuoteSent(false); setQuoteOpen(true); }
+              }} aria-label={typeof product.priceNgn === "number" ? "Add " + product.name + " to bag" : "Request price for " + product.name}>{typeof product.priceNgn === "number" ? <Plus size={17} /> : <ArrowUpRight size={17} />}</button></div></div>
+            </article>) : <div className="empty-results catalog-empty">
+              <span className="catalog-empty-index">{catalogStatus === "loading" ? "01" : "SC"}</span>
+              <h3>{catalogStatus === "loading" ? "Preparing the catalogue" : catalogStatus === "error" ? "Catalogue unavailable" : search ? "No matches found" : catalogStatus === "empty" ? "We're getting the store ready." : "No products in this category yet."}</h3>
+              <p>{catalogStatus === "loading" ? "Checking the current product list." : catalogStatus === "error" ? "The product list could not be loaded. Please contact us to check availability." : search ? "Try a different product name, or ask us to source it." : "We only list products that have been added to the catalogue. Tell us what you need and we'll check availability."}</p>
+              <div className="catalog-empty-actions"><button className="button button-primary" onClick={() => { setQuoteForm(form => ({ ...form, items: search || activeCategory === "All products" ? "" : activeCategory })); setQuoteSent(false); setQuoteOpen(true); }}>Ask us to source an item <ArrowRight size={16} /></button>{search && <button className="text-link" onClick={() => setSearch("")}>Clear search</button>}</div>
+            </div>}</div>
             <div className="catalog-note"><span><ShieldCheck size={17} /></span><p><strong>Looking for a specific model?</strong> Our catalogue is only a starting point. Ask us to source the exact device you need.</p><button onClick={() => setQuoteOpen(true)}>Request a quote <ArrowRight size={15} /></button></div>
           </div>
         </div>
@@ -153,7 +186,7 @@ function App() {
 
     <footer id="contact"><div className="footer-main"><div className="footer-brand-col"><a className="brand brand-footer" href="#top"><span className="brand-mark"><span /><span /><span /></span><span className="brand-name">SHEGCOM<span>TECH</span><small>TECHNOLOGY, MADE PRACTICAL.</small></span></a><p>Dependable technology, useful digital services and business supply — all in one place.</p><a href="mailto:hello@shegcomtech.com" className="footer-contact">Let's talk <ArrowUpRight size={15} /></a></div><div className="footer-links"><span>EXPLORE</span><a href="#shop">Shop technology</a><a href="#business">Business supply</a><a href="#services">Print & digital services</a><a href="#about">Why SHEGCOMTECH</a></div><div className="footer-links"><span>HERE TO HELP</span><a href="#contact">Contact the team</a><button onClick={() => setQuoteOpen(true)}>Request a quotation</button><a href="#services">Start a print request</a><small>Business hours and response times to be confirmed.</small></div><div className="footer-cta"><span className="footer-cta-mark"><ArrowUpRight size={24} /></span><h3>Have a list?<br />Let's make it happen.</h3><p>Tell us what you need. We'll help you figure out the next step.</p><button onClick={() => setQuoteOpen(true)}>Start a conversation <ArrowRight size={16} /></button></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} SHEGCOMTECH. All rights reserved.</span><span>BUILT AROUND WHAT YOU NEED. <span className="footer-blue">SC.</span></span></div></footer>
 
-    {cartOpen && <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) setCartOpen(false); }}><div className="drawer" role="dialog" aria-modal="true" aria-label="Shopping bag"><div className="drawer-head"><div><span className="eyebrow">YOUR SELECTION</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="icon-button" onClick={() => setCartOpen(false)} aria-label="Close bag"><X size={21} /></button></div>{cart.length ? <><div className="drawer-items">{cart.map((p, i) => <div className="drawer-item" key={p.id + "-" + i}><img src={photo(p.image, 180)} alt="" /><div><small>{p.category}</small><strong>{p.name}</strong><b>{p.price}</b></div><button aria-label={"Remove " + p.name} onClick={() => setCart(old => old.filter((_, index) => index !== i))}><Trash2 size={16} /></button></div>)}</div><div className="drawer-total"><span>Estimated total</span><strong>{formatMoney(cartTotal)}</strong></div><p className="drawer-disclaimer">Displayed prices are illustrative placeholders and should be confirmed before orders are accepted.</p><button className="button button-primary drawer-checkout" onClick={() => { setCartOpen(false); setQuoteOpen(true); setQuoteForm(f => ({ ...f, items: cart.map(p => p.name).join(", "), quantity: String(cart.length) })); }}>Request availability & price <ArrowRight size={16} /></button><button className="clear-bag" onClick={() => setCart([])}>Clear bag</button></> : <div className="empty-bag"><ShoppingBag size={30} /><h3>Your bag is taking a breather.</h3><p>Add a few things you like and they'll show up here.</p><button className="button button-primary" onClick={() => { setCartOpen(false); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}>Browse the store <ArrowRight size={16} /></button></div>}</div></div>}
+    {cartOpen && <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) setCartOpen(false); }}><div className="drawer" role="dialog" aria-modal="true" aria-label="Shopping bag"><div className="drawer-head"><div><span className="eyebrow">YOUR SELECTION</span><h2>Your bag <span>({cart.length})</span></h2></div><button className="icon-button" onClick={() => setCartOpen(false)} aria-label="Close bag"><X size={21} /></button></div>{cart.length ? <><div className="drawer-items">{cart.map((p, i) => <div className="drawer-item" key={p.id + "-" + i}><img src={photo(p.image, 180)} alt="" /><div><small>{p.category}</small><strong>{p.name}</strong><b>{formatMoney(p.priceNgn)}</b></div><button aria-label={"Remove " + p.name} onClick={() => setCart(old => old.filter((_, index) => index !== i))}><Trash2 size={16} /></button></div>)}</div><div className="drawer-total"><span>Estimated total</span><strong>{formatMoney(cartTotal)}</strong></div><p className="drawer-disclaimer">Price and stock are confirmed with our team before an order is finalised.</p><button className="button button-primary drawer-checkout" onClick={() => { setCartOpen(false); setQuoteOpen(true); setQuoteForm(f => ({ ...f, items: cart.map(p => p.name).join(", "), quantity: String(cart.length) })); }}>Request availability & price <ArrowRight size={16} /></button><button className="clear-bag" onClick={() => setCart([])}>Clear bag</button></> : <div className="empty-bag"><ShoppingBag size={30} /><h3>Your bag is taking a breather.</h3><p>Add a few things you like and they'll show up here.</p><button className="button button-primary" onClick={() => { setCartOpen(false); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}>Browse the store <ArrowRight size={16} /></button></div>}</div></div>}
 
     {quoteOpen && <div className="overlay" onMouseDown={e => { if (e.target === e.currentTarget) setQuoteOpen(false); }}><div className="quote-modal" role="dialog" aria-modal="true" aria-label="Request a quotation"><div className="drawer-head"><div><span className="eyebrow">LET'S GET YOU SORTED</span><h2>Request a <span>quote.</span></h2></div><button className="icon-button" onClick={() => setQuoteOpen(false)} aria-label="Close quotation form"><X size={21} /></button></div>{quoteSent ? <div className="request-success"><span><Check size={24} /></span><h3>Thanks for the details.</h3><p>This demo has captured your entries in the current page only. To deliver quotations to SHEGCOMTECH, connect a backend or business email workflow before launch.</p><button className="button button-primary" onClick={() => { setQuoteOpen(false); setQuoteSent(false); }}>Close</button></div> : <form className="quote-form" onSubmit={submitQuote}><p>Tell us what you're looking for. This works for individual purchases and business orders.</p><div className="quote-fields"><label>YOUR NAME<input required value={quoteForm.name} onChange={e => setQuoteForm({ ...quoteForm, name: e.target.value })} placeholder="Full name" /></label><label>COMPANY <span>OPTIONAL</span><input value={quoteForm.company} onChange={e => setQuoteForm({ ...quoteForm, company: e.target.value })} placeholder="Company or organisation" /></label><label>EMAIL ADDRESS<input required type="email" value={quoteForm.email} onChange={e => setQuoteForm({ ...quoteForm, email: e.target.value })} placeholder="you@example.com" /></label><label>PHONE NUMBER<input value={quoteForm.phone} onChange={e => setQuoteForm({ ...quoteForm, phone: e.target.value })} placeholder="Best number to reach you" /></label><label className="field-wide">WHAT DO YOU NEED?<textarea required rows="3" value={quoteForm.items} onChange={e => setQuoteForm({ ...quoteForm, items: e.target.value })} placeholder="e.g. 12 laptops, 12 monitors, 2 CCTV kits…" /></label><label className="field-wide">ESTIMATED QUANTITY <span>OPTIONAL</span><input value={quoteForm.quantity} onChange={e => setQuoteForm({ ...quoteForm, quantity: e.target.value })} placeholder="e.g. 12 units or a full office setup" /></label></div><button className="button button-primary quote-submit" type="submit">Prepare my request <ArrowRight size={16} /></button><p className="quote-note">Demo form only — connect an email or database service to receive real enquiries.</p></form>}</div></div>}
   </div>;
